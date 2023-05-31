@@ -76,8 +76,19 @@ namespace Students_Data_and_Reports
             Text = $@"  {programTitle}       |       {DateTime.Now.ToString("hh:mm:ss tt       |       dddd - dd/MMMM/yyyy")}";
         }
 
+        /// <summary>
+        /// Función que se encarga de cargar los datos.
+        /// Esto carga los datos de manera asíncrona y en otro hilo del procesador.
+        /// 
+        /// Es importante hacer esta función dentro de un hilo que no se está usando, porque
+        /// En caso de que la aplicación se frize, el proceso no lo hará, ya que trabaja en
+        /// una sección independiente del programa. Eso es a lo que le llamamos "Asíncrono".
+        /// </summary>
+        /// <param name="query">Consulta o mandato que le digo a la base de datos que me traiga.</param>
+        /// <param name="dgv">Control u objeto que queremos cambiar.</param>
         private async void CargarDatosAsync(string query, DataGridView dgv)
         {
+            //El try catch es para evitar que al momento de que el programa nos de error, no se detenga.
             try
             {
                 // Código para establecer la conexión a la base de datos
@@ -106,13 +117,14 @@ namespace Students_Data_and_Reports
                             dgv.Rows.Add(rowData);
                         }
 
-                        reader.Close(); // Cerrar el lector de datos
-                        connection.Close(); // Cerrar la conexión
+                        reader.Close(); // Cerrar el lector de datos 
+                        connection.Close(); // Cerrar la conexión para evitar sobrecarga a los servidores.
                     }
                 }
             }
             catch (Exception error)
-            { MessageBox.Show("No se pudo conectar con la base de datos\n\n" + error.Message, "¡Error de conexión " + error.HResult + "!", MessageBoxButtons.OK, MessageBoxIcon.Stop); }
+            {
+                MessageBox.Show("No se pudo conectar con la base de datos\n\n" + error.Message, "¡Error de conexión " + error.HResult + "!", MessageBoxButtons.OK, MessageBoxIcon.Stop); }
             finally { enableControls(false); controlEstado = controlEstado.Nada; }
         }
 
@@ -189,6 +201,9 @@ namespace Students_Data_and_Reports
                                 AsociacionAdventista Like '%{input}%'";
             }
 
+            //Valor EsVisible, recuerde de crearlo de tipo INT (En SQLServer, al final, nice).
+            //_query += $@" Where EsVisible = '1'";
+
             return _query;
         }
 
@@ -210,7 +225,7 @@ namespace Students_Data_and_Reports
                     {
                         currentRow = selectedRow;
 
-                        //ID.
+                        //Cédula.
                         textBox1.Text = selectedRow.Cells[1].Value.ToString();
 
                         //Nombre.
@@ -287,7 +302,6 @@ namespace Students_Data_and_Reports
                     }
                 }
                 MessageBox.Show("Se ha seleccionado un estudiante.", "¡Dato encontrado!", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
-
             }
             catch (Exception error)
             {
@@ -383,7 +397,7 @@ namespace Students_Data_and_Reports
                     if (controlEstado == controlEstado.crear)
                     {
                         query = $@"
-                        Update DatosPersonales
+                        Insert Into DatosPersonales
                         VALUES (
                                 --Cédula
                             '{textBox1.Text}',
@@ -501,7 +515,7 @@ namespace Students_Data_and_Reports
 
             // Establecer las propiedades del cuadro de diálogo
             openFileDialog.Title = "Seleccionar foto";
-            openFileDialog.Filter = "Archivos de imagen|*.jpg;*.jpeg;*.png;*.gif";
+            openFileDialog.Filter = "Archivos de imagen|*.jpg;*.jpeg;*.png;*.gif;";
             openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
 
             // Mostrar el cuadro de diálogo y verificar si el usuario hizo clic en el botón "Aceptar"
